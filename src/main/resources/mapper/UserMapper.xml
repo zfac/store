@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--
+namespace：用于指定当前映射文件和哪个接口进行映射，需要指定接口的文件路径，
+-->
+<mapper namespace="com.cy.store.mapper.UserMapper">
+
+    <!--自定义映射规则：resultMap标签来完成映射规则的定义-->
+    <!--
+    id:表示给这个映射规则分配一个唯一的id值。对应的resultMap="id属性的值"属性的取值
+    type:取值是一个类，表示的数据中查询结果和java中哪个实体类进行结果的映射
+    -->
+    <resultMap id="UserEntityMap" type="com.cy.store.entity.User">
+        <!--将表中的资源和类的属性不一致的字段进行匹配指定，名称一致的可以省略不写-->
+        <!--
+        配合完成名称不一致的映射
+        column表的字段
+        property实体的属性
+        -->
+        <!--在定义映射规则时，主键是不可以省略的-->
+        <id column="uid" property="uid"/>
+        <result column="is_delete" property="isDelete"/>
+        <result column="created_user" property="createdUser"/>
+        <result column="created_time" property="createdTime"/>
+        <result column="modified_user" property="modifiedUser"/>
+        <result column="modified_time" property="modifiedTime"/>
+    </resultMap>
+
+
+
+    <!--id属性：表示映射的接口中方法的名称，直接在标签的内容部来写SQL语句-->
+    <!--useGeneratedKeys="true"开启某个字段的自增(主键设置为自增)
+        keyProperty表中的哪个字段作为主键进行递增-->
+    <!--into后面的表的字段需要和表一样
+    values后面的变量名需要和实体类的属性的值一样-->
+    <insert id="insert" useGeneratedKeys="true" keyProperty="uid">
+        INSERT INTO t_user(username,password,salt,phone,email,gender
+        ,avatar,is_delete,created_user,created_time,modified_user,modified_time)
+        values (#{username},#{password},#{salt},#{phone},#{email},#{gender},#{avatar},#{isDelete},#{createdUser},#{createdTime},#{modifiedUser},#{modifiedTime})
+
+    </insert>
+
+    <!--select语句在执行的时候，查询的结果是一个对象，多个对象-->
+    <!--
+        resultType:表示查询的结果集类型，只需要指定对应映射类的类型，并且包含完整的包接口.要求字段名和实体类属性一一对应
+        resultMap:当表的字段和类的对象的属性的名称不一致时，来自定义查询结果集的映射规则
+    -->
+    <select id="findByUsername" resultMap="UserEntityMap">
+        select *
+        from t_user where username = #{username};
+    </select>
+
+
+    <update id="updatePasswordByUid">
+        update t_user set
+        password = #{password},
+        modified_user = #{modifiedUser},
+        modified_time = #{modifiedTime}
+        where uid = #{uid}
+    </update>
+
+
+    <select id="findByUid" resultMap="UserEntityMap">
+        select *
+        from t_user where uid=#{uid};
+        <!--如果传递的参数，那么后面的uid要和参数名一样
+        如果传递的是对象，那么uid要和传递对象的属性一样-->
+    </select>
+
+
+    <update id="updateInfoByUid">
+        update t_user
+        set
+            <!--if表示条件判断标签，test接受的是一个返回值为boolean类型的条件
+            如果test条件的结果为true则执行if标签内部的语句-->
+            <if test="phone!=null">phone=#{phone},</if>
+            <if test="email!=null">email=#{email},</if>
+            <if test="gender!=null">gender=#{gender},</if>
+            modified_user=#{modifiedUser},
+            modified_time=#{modifiedTime}
+        where uid=#{uid}
+    </update>
+
+
+    <update id="updateAvatarByUid">
+        update t_user
+        set
+            avatar=#{avatar},
+            modified_user=#{modifiedUser},
+            modified_time=#{modifiedTime}
+        where
+            uid = #{uid}
+    </update>
+</mapper>
